@@ -1,5 +1,9 @@
-output "basic_IP_Address" {
-  value = aws_instance.basic.*.public_ip
+output "clients_IP_Address" {
+  value = aws_instance.clients.*.public_ip
+}
+
+output "servers_IP_Address" {
+  value = aws_instance.server.*.public_ip
 }
 
 # output "spot_IP_Address" {
