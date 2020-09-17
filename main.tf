@@ -131,7 +131,8 @@ resource "aws_instance" "clients" {
   provisioner "remote-exec" {
     inline = [
       "sudo apt update && sudo apt -y install gnupg wget curl vim nfs-common rpcbind",
-      "echo 'deb http://http.kali.org/kali kali-rolling main non-free contrib' | sudo tee -a /etc/apt/sources.list",
+      # "echo 'deb http://http.kali.org/kali kali-rolling main non-free contrib' | sudo tee -a /etc/apt/sources.list",
+	  "echo 'deb http://mirror.aktkn.sg/kali kali-rolling main non-free contrib' | sudo tee -a /etc/apt/sources.list",
       "sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ED444FF07D8D0BF6",
       "sudo apt update",
       "sudo DEBIAN_FRONTEND=noninteractive apt -y install nmap tcpdump metasploit-framework",
@@ -211,4 +212,30 @@ resource "aws_instance" "server" {
 
     ]
   }
+}
+
+#Retrieve route53 zone ID  
+data "aws_route53_zone" "susszone" {
+    name = "sussvlab.net."
+}
+
+
+#create route53 records for client machines
+resource "aws_route53_record" "clientsURL" {
+    zone_id = data.aws_route53_zone.susszone.zone_id
+    type    = "A"
+    ttl     = "300"
+    count   =  var.instance_count
+    name    = "client${count.index+1}"
+    records = ["${element(aws_instance.clients.*.public_ip, count.index)}"]
+}
+
+#create route53 records for server machines
+resource "aws_route53_record" "serversURL" {
+  zone_id = data.aws_route53_zone.susszone.zone_id
+  type    = "A"
+  ttl     = "300"
+  count   = var.server_instance_count
+  name    = "server${count.index+1}"
+  records = ["${element(aws_instance.server.*.public_ip, count.index)}"]
 }
