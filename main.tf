@@ -144,6 +144,8 @@ resource "aws_instance" "clients" {
       "echo s3:password | sudo chpasswd",
       "sudo useradd -s /bin/bash -m -g sudo s4",
       "echo s4:password | sudo chpasswd",
+      "sudo useradd -s /bin/bash -m -g sudo s5",
+      "echo s5:password | sudo chpasswd",
       "sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config",
       "sudo /etc/init.d/ssh restart"
     ]
