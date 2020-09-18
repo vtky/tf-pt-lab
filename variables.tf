@@ -45,11 +45,11 @@ variable "instance_type" {
 }
 
 variable "client_instance_count" {
-  default = "1"
+  default = "3"
 }
 
 variable "server_instance_count" {
-  default = "1"
+  default = "3"
 }
 
 # aws --profile suss ec2 describe-vpcs | jq ".Vpcs[].CidrBlock" | sort

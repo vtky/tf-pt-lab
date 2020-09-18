@@ -130,22 +130,17 @@ resource "aws_instance" "clients" {
 
   provisioner "remote-exec" {
     inline = [
+      "echo '{thisisth3Fl4g}' | sudo tee /root/flag.txt",
       "sudo apt update && sudo apt -y install gnupg wget curl vim nfs-common rpcbind",
       # "echo 'deb http://http.kali.org/kali kali-rolling main non-free contrib' | sudo tee -a /etc/apt/sources.list",
-	  "echo 'deb http://mirror.aktkn.sg/kali kali-rolling main non-free contrib' | sudo tee -a /etc/apt/sources.list",
+      "echo 'deb http://mirror.aktkn.sg/kali kali-rolling main non-free contrib' | sudo tee -a /etc/apt/sources.list",
       "sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ED444FF07D8D0BF6",
       "sudo apt update",
       "sudo DEBIAN_FRONTEND=noninteractive apt -y install nmap tcpdump metasploit-framework",
-      "sudo useradd -s /bin/bash -m -g sudo s1",
-      "echo s1:password | sudo chpasswd",
-      "sudo useradd -s /bin/bash -m -g sudo s2",
-      "echo s2:password | sudo chpasswd",
-      "sudo useradd -s /bin/bash -m -g sudo s3",
-      "echo s3:password | sudo chpasswd",
-      "sudo useradd -s /bin/bash -m -g sudo s4",
-      "echo s4:password | sudo chpasswd",
-      "sudo useradd -s /bin/bash -m -g sudo s5",
-      "echo s5:password | sudo chpasswd",
+      "bash -c 'for i in {1..5}; do sudo useradd -s /bin/bash -m s$i; echo s$i:password | sudo chpasswd; sudo usermod -a -G sudo s$i; done'",
+      "echo 'Hello World' | sudo tee /home/s1/hello.txt /home/s2/hello.txt /home/s3/hello.txt /home/s4/hello.txt /home/s5/hello.txt",
+      "sudo chmod 664 /home/s1/hello.txt /home/s2/hello.txt /home/s3/hello.txt /home/s4/hello.txt /home/s5/hello.txt",
+      "bash -c 'for i in {1..5}; do sudo chown s$i:s$i /home/s$i/hello.txt; done'",
       "sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config",
       "sudo /etc/init.d/ssh restart"
     ]
