@@ -109,7 +109,7 @@ resource "aws_key_pair" "tfkey" {
 }
 
 resource "aws_instance" "clients" {
-  count                  = var.instance_count
+  count                  = var.client_instance_count
   ami                    = data.aws_ami.debian10.id
   instance_type          = var.instance_type
   key_name               = aws_key_pair.tfkey.key_name
@@ -217,24 +217,24 @@ resource "aws_instance" "server" {
 }
 
 #Retrieve route53 zone ID  
-data "aws_route53_zone" "susszone" {
-    name = "sussvlab.net."
+data "aws_route53_zone" "dnszone" {
+    name = var.zoneid
 }
 
 
 #create route53 records for client machines
 resource "aws_route53_record" "clientsURL" {
-    zone_id = data.aws_route53_zone.susszone.zone_id
+    zone_id = data.aws_route53_zone.dnszone.zone_id
     type    = "A"
     ttl     = "300"
-    count   =  var.instance_count
+    count   =  var.client_instance_count
     name    = "client${count.index+1}"
     records = ["${element(aws_instance.clients.*.public_ip, count.index)}"]
 }
 
 #create route53 records for server machines
 resource "aws_route53_record" "serversURL" {
-  zone_id = data.aws_route53_zone.susszone.zone_id
+  zone_id = data.aws_route53_zone.dnszone.zone_id
   type    = "A"
   ttl     = "300"
   count   = var.server_instance_count

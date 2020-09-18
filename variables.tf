@@ -44,7 +44,7 @@ variable "instance_type" {
   default = "t3a.large"
 }
 
-variable "instance_count" {
+variable "client_instance_count" {
   default = "1"
 }
 
@@ -62,3 +62,6 @@ variable "aws_vpc_subnet_cidr_block" {
   default = "10.10.1.0/24"
 }
 
+variable "zoneid" {
+  default = "example.com."
+}
