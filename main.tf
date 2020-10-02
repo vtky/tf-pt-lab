@@ -117,6 +117,10 @@ resource "aws_instance" "clients" {
 
   subnet_id = aws_subnet.ex-subnet-public-1.id
 
+  root_block_device {
+    volume_size = 50
+  }
+
   tags = {
     Name = format("%s-ec2-clients-%d", var.tag, count.index + 1)
   }
@@ -130,8 +134,7 @@ resource "aws_instance" "clients" {
 
   provisioner "remote-exec" {
     inline = [
-      "echo '{thisisth3Fl4g}' | sudo tee /root/flag.txt",
-      "sudo apt update && sudo apt -y install gnupg wget curl vim nfs-common rpcbind",
+      "sudo apt update && sudo apt -y install gnupg wget curl vim nfs-common rpcbind ftp git",
       # "echo 'deb http://http.kali.org/kali kali-rolling main non-free contrib' | sudo tee -a /etc/apt/sources.list",
       "echo 'deb http://mirror.aktkn.sg/kali kali-rolling main non-free contrib' | sudo tee -a /etc/apt/sources.list",
       "sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ED444FF07D8D0BF6",
@@ -142,7 +145,11 @@ resource "aws_instance" "clients" {
       "sudo chmod 664 /home/s1/hello.txt /home/s2/hello.txt /home/s3/hello.txt /home/s4/hello.txt /home/s5/hello.txt",
       "bash -c 'for i in {1..5}; do sudo chown s$i:s$i /home/s$i/hello.txt; done'",
       "sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config",
-      "sudo /etc/init.d/ssh restart"
+      "sudo /etc/init.d/ssh restart",
+      "git clone https://github.com/vtky/tf-pt-lab.git",
+      "cd $HOME/tf-pt-lab/assets",
+      "sudo dpkg -i Nessus-8.11.1-debian6_amd64.deb",
+      "sudo systemctl restart nessusd"
     ]
   }
 }
@@ -155,6 +162,10 @@ resource "aws_instance" "server" {
   instance_type          = var.instance_type
   key_name               = aws_key_pair.tfkey.key_name
   vpc_security_group_ids = [aws_security_group.allow_all.id]
+
+  root_block_device {
+    volume_size = 50
+  }
 
   subnet_id = aws_subnet.ex-subnet-public-1.id
 
@@ -184,7 +195,11 @@ resource "aws_instance" "server" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo apt update && sudo apt -y install gnupg wget git curl vim build-essential gcc-multilib lib32z1 xinetd rsh-server rpcbind nfs-common nfs-kernel-server",
+      "echo '{thisisth3Fl4g}' | sudo tee /root/flag.txt",
+      "sudo apt update && sudo apt -y install apt-transport-https gnupg wget git curl vim build-essential gcc-multilib lib32z1 xinetd rsh-server rpcbind nfs-common nfs-kernel-server apache2 mariadb-server php php-mysqli php-gd libapache2-mod-php default-jre",
+      "wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -",
+      "echo 'deb https://artifacts.elastic.co/packages/7.x/apt stable main' | sudo tee -a /etc/apt/sources.list.d/elastic-7.x.list",
+      "sudo apt update && sudo apt -y install elasticsearch kibana logstash metricbeat filebeat auditbeat",
       # "echo '+ +' | sudo tee -a /root/.rhosts",
       # "sudo chmod 700 /root/.rhosts",
       # "echo 'rsh' | sudo tee -a /etc/securetty",
@@ -205,8 +220,28 @@ resource "aws_instance" "server" {
       # "./configure",
       "echo '/       *(rw,sync,no_root_squash,no_subtree_check)' | sudo tee -a /etc/exports",
       "sudo exportfs -a",
-      "sudo systemctl restart nfs-kernel-server"
+      "sudo systemctl restart nfs-kernel-server",
+      "cd /var/www/html/",
+      "sudo git clone https://github.com/ethicalhack3r/DVWA.git dvwa",
+      "cd /var/www/html/dvwa/config",
+      "sudo mv config.inc.php.dist config.inc.php",
+      "sudo mysql -e \"create database dvwa;create user dvwa@localhost identified by 'p@ssw0rd';grant all on dvwa.* to dvwa@localhost;flush privileges;\"",
 
+      "echo 'network.host: \"localhost\"' | sudo tee -a /etc/elasticsearch/elasticsearch.yml",
+      "echo 'http.port: 9200' | sudo tee -a /etc/elasticsearch/elasticsearch.yml",
+      "echo 'cluster.initial_master_nodes: [\"127.0.0.1\"]' | sudo tee -a /etc/elasticsearch/elasticsearch.yml",
+      "sudo systemctl start elasticsearch",
+      "sudo systemctl start logstash",
+      "echo 'server.port: 5601' | sudo tee -a /etc/kibana/kibana.yml",
+      "echo 'server.host: \"0.0.0.0\"' | sudo tee -a /etc/kibana/kibana.yml",
+      "echo 'elasticsearch.hosts: [\"http://localhost:9200\"]' | sudo tee -a /etc/kibana/kibana.yml",
+      "sudo systemctl start kibana",
+      "sleep 120",
+      "sudo auditbeat setup",
+      "sudo systemctl start auditbeat",
+      "sudo filebeat modules enable apache mysql iptables system",
+      "sudo filebeat setup",
+      "sudo systemctl start filebeat",
     ]
   }
 }
