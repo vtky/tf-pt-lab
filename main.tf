@@ -134,7 +134,7 @@ resource "aws_instance" "clients" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo apt update && sudo apt -y install gnupg wget curl vim nfs-common rpcbind ftp git",
+      "sudo apt update && sudo apt -y install gnupg wget curl vim nfs-common rpcbind ftp git sleuthkit iperf",
       # "echo 'deb http://http.kali.org/kali kali-rolling main non-free contrib' | sudo tee -a /etc/apt/sources.list",
       "echo 'deb http://mirror.aktkn.sg/kali kali-rolling main non-free contrib' | sudo tee -a /etc/apt/sources.list",
       "sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys ED444FF07D8D0BF6",
@@ -196,7 +196,13 @@ resource "aws_instance" "server" {
   provisioner "remote-exec" {
     inline = [
       "echo '{thisisth3Fl4g}' | sudo tee /root/flag.txt",
-      "sudo apt update && sudo apt -y install apt-transport-https gnupg wget git curl vim build-essential gcc-multilib lib32z1 xinetd rsh-server rpcbind nfs-common nfs-kernel-server apache2 mariadb-server php php-mysqli php-gd libapache2-mod-php default-jre",
+      "bash -c 'for i in {1..5}; do sudo useradd -s /bin/bash -m s$i; echo s$i:password | sudo chpasswd; sudo usermod -a -G sudo s$i; done'",
+      "echo 'Hello World' | sudo tee /home/s1/hello.txt /home/s2/hello.txt /home/s3/hello.txt /home/s4/hello.txt /home/s5/hello.txt",
+      "sudo chmod 664 /home/s1/hello.txt /home/s2/hello.txt /home/s3/hello.txt /home/s4/hello.txt /home/s5/hello.txt",
+      "bash -c 'for i in {1..5}; do sudo chown s$i:s$i /home/s$i/hello.txt; done'",
+      "sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config",
+      "sudo /etc/init.d/ssh restart",
+      "sudo apt update && sudo apt -y install apt-transport-https gnupg wget git curl vim build-essential gcc-multilib lib32z1 xinetd rsh-server rpcbind nfs-common nfs-kernel-server apache2 mariadb-server php php-mysqli php-gd libapache2-mod-php default-jre iperf tcpdump",
       "wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -",
       "echo 'deb https://artifacts.elastic.co/packages/7.x/apt stable main' | sudo tee -a /etc/apt/sources.list.d/elastic-7.x.list",
       "sudo apt update && sudo apt -y install elasticsearch kibana logstash metricbeat filebeat auditbeat",
